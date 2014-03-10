@@ -1,0 +1,19 @@
+{
+  "name": "node-dup2",
+  "version": "0.0.1",
+  "description": "I achieve dup2 of C",
+  "main": "dup2.js",
+  "scripts": {
+    "test": "testdup2.js",
+    "install": "node-gyp rebuild"
+  },
+  "keywords": [
+    "dup2", "stdout"
+  ],
+  "repository": {
+    "url": "https://github.com/solidco2/node-dup2"
+  },
+  "author": "Solid",
+  "license": "ISC",
+  "gypfile": true
+}
