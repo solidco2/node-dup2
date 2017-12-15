@@ -1,1 +1,1 @@
-module.exports = require("./build/Release/dup2");
+module.exports = require('bindings')("dup2");

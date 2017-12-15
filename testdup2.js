@@ -1,6 +1,21 @@
 #!/usr/bin/env node
-var dup2 = require("./build/Release/dup2");
-var fs = require("fs");
-var fd = fs.openSync("test.log", "a");
-dup2.invoke(fd, 1);
-console.log("hello, file");
+
+let fs   = require('fs');
+let dup2 = require('bindings')('dup2');
+
+async function test () {
+
+    let fd = fs.openSync('test.log', 'a');
+    let newfd;
+
+    try {
+        newfd = await dup2.change(fd, 2);
+    } catch (error) {
+        throw error;
+    }
+
+    console.log('hello, file');
+    console.log('New FileDescriptor:', newfd);
+}
+
+test()

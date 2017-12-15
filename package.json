@@ -1,19 +1,30 @@
 {
   "name": "node-dup2",
-  "version": "0.0.1",
+  "version": "1.0.1",
   "description": "I achieve dup2 of C",
   "main": "dup2.js",
   "scripts": {
-    "test": "testdup2.js",
+    "test": "node testdup2.js",
     "install": "node-gyp rebuild"
   },
   "keywords": [
-    "dup2", "stdout"
+    "dup2",
+    "stdout",
+    "napi"
   ],
   "repository": {
     "url": "https://github.com/solidco2/node-dup2"
   },
   "author": "Solid",
+  "contributors": [
+    {
+      "name": "Philipp 'luii' Czarnetzki",
+      "url": "https://github.com/luii"
+    }
+  ],
   "license": "ISC",
-  "gypfile": true
+  "gypfile": true,
+  "dependencies": {
+    "bindings": "^1.3.0"
+  }
 }
