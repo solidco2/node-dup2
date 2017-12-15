@@ -11,7 +11,7 @@ async function test () {
     try {
         newfd = await dup2.change(fd, 2);
     } catch (error) {
-        throw(error);
+        throw error;
     }
 
     console.log('hello, file');
