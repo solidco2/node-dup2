@@ -1,6 +1,6 @@
 {
   "name": "node-dup2",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "I achieve dup2 of C",
   "main": "dup2.js",
   "scripts": {
