@@ -1,6 +1,8 @@
 #include <node_api.h>
 #include <fcntl.h>
 #include <assert.h>
+#include <errno.h>
+#include <string.h>
 
 #ifdef WIN32
 #include <io.h>
@@ -37,22 +39,49 @@ napi_value change (napi_env env, napi_callback_info info) {
     // argc is an "in-out" argument of "napi_get_cb_info" you pass the 
     // expected arg count in and get the actual count so you can compare it
     // against something
-    if (argc < 2) {
-        napi_throw_range_error(env, nullptr, "The function needs two arguments");
-        return nullptr;
+    if (argc != 2) {
+        napi_value error;
+        napi_value nReason;
+        const char* reason = "The function needs two arguments";
+
+        status = napi_create_string_utf8(env, reason, 32, &nReason);
+        assert(status == napi_ok);
+
+        status = napi_create_error(env, nullptr, nReason, &error);
+        assert(status == napi_ok);
+
+        status = napi_reject_deferred(env, deferred, error);
+        assert(status == napi_ok);
+
+        deferred = NULL;
+
+        return promise;
     } 
 
     // type checking
     status = napi_typeof(env, argv[0], &argType1);
-    if (status != napi_ok) {
-        napi_throw_type_error(env, nullptr, "Old FileDescriptor must be a Number");
-        return nullptr;
-    }
+    assert(status == napi_ok);
 
     status = napi_typeof(env, argv[1], &argType2);
-    if (status != napi_ok) {
-        napi_throw_type_error(env, nullptr, "New FileDescriptor must be a Number");
-        return nullptr;
+    assert(status == napi_ok);
+
+    if (argType1 != napi_number || argType2 != napi_number) {
+        napi_value error;
+        napi_value nReason;
+        const char* reason = "The FileDescriptor must be a Number";
+
+        status = napi_create_string_utf8(env, reason, 35, &nReason);
+        assert(status == napi_ok);
+
+        status = napi_create_error(env, nullptr, nReason, &error);
+        assert(status == napi_ok);
+
+        status = napi_reject_deferred(env, deferred, error);
+        assert(status == napi_ok);
+
+        deferred = NULL;
+
+        return promise;
     }
 
     // get the actual values and convert them to C types
@@ -63,10 +92,10 @@ napi_value change (napi_env env, napi_callback_info info) {
     assert(status == napi_ok);
 
     // all the duplicating magic
-    close(newfd);
+    close(newfd); // close the new file descriptor first if its occupied
 
-    int retfd = fcntl(oldfd, F_DUPFD, newfd);
-    
+    int retfd = dup2(oldfd, newfd);
+
     // either resolve or reject with an error
     if (newfd == (uint32_t)retfd) {
         status = napi_create_uint32(env, retfd, &ret);
@@ -74,15 +103,19 @@ napi_value change (napi_env env, napi_callback_info info) {
 
         status = napi_resolve_deferred(env, deferred, ret);
         assert(status == napi_ok);
-    } else {
+    } else if (retfd == -1 && errno) {
         napi_value error;
+        napi_value nErrno;
         napi_value nReason;
-        const char* reason = "Changed FileDescriptor not matches the chosen";
+        char* reason = strerror(errno);
 
-        status = napi_create_string_utf8(env, reason, sizeof(reason), &nReason);
+        status = napi_create_int32(env, (int32_t)errno, &nErrno);
         assert(status == napi_ok);
 
-        status = napi_create_error(env, nullptr, nReason, &error);
+        status = napi_create_string_utf8(env, (const char*)reason, sizeof(reason), &nReason);
+        assert(status == napi_ok);
+
+        status = napi_create_error(env, nErrno, nReason, &error);
         assert(status == napi_ok);
 
         status = napi_reject_deferred(env, deferred, error);
